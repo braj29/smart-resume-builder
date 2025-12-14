@@ -52,8 +52,8 @@ class OpenAIClient:
             except Exception as exc:  # pragma: no cover - network call
                 last_error = exc
                 if _is_rate_limit_error(exc):
-                    # User indicated ~3 req/min; wait ~20s before retrying.
-                    wait_time = max(delay, 20.0)
+                    # User indicated ~3 req/min; wait a full 60s to be safe.
+                    wait_time = 60.0
                     logger.warning(
                         "OpenAI rate limit encountered (attempt %s). Waiting %.1fs",
                         attempt + 1,
