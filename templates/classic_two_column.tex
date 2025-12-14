@@ -1,0 +1,68 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.7in]{geometry}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+\begin{center}
+    {\Large {{ contact.name|default("Name") }} }\\
+    {{ contact.email|default("") }} | {{ contact.phone|default("") }} | {{ contact.location|default("") }}\\
+    {{ contact.linkedin|default("") }} {{ contact.website|default("") }}
+\end{center}
+
+\begin{multicols}{2}
+\section*{Skills}
+\begin{itemize}[leftmargin=*]
+    \BLOCK{ for skill in skills }
+    \item {{ skill }}
+    \BLOCK{ endfor }
+\end{itemize}
+
+\section*{Education}
+\BLOCK{ for edu in education }
+\textbf{ {{ edu.institution }} } \\
+{{ edu.degree|default("") }} {{ edu.field|default("") }} \\
+{{ edu.start_date|default("") }} -- {{ edu.end_date|default("") }} \\
+\begin{itemize}[leftmargin=*]
+    \BLOCK{ for bullet in edu.details }
+    \item {{ bullet.text }}
+    \BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ endfor }
+
+\section*{Certifications}
+\begin{itemize}[leftmargin=*]
+    \BLOCK{ for cert in certifications }
+    \item {{ cert.name }} {{ cert.issuer|default("") }} {{ cert.date|default("") }}
+    \BLOCK{ endfor }
+\end{itemize}
+\columnbreak
+
+\section*{Summary}
+{{ summary|default("Tailored summary goes here.") }}
+
+\section*{Experience}
+\BLOCK{ for exp in work_experience }
+\textbf{ {{ exp.title }} } --- {{ exp.company }} \\
+{{ exp.location|default("") }} \\
+{{ exp.start_date|default("") }} -- {{ exp.end_date|default("Present") }} \\
+\begin{itemize}[leftmargin=*]
+    \BLOCK{ for bullet in exp.bullets }
+    \item {{ bullet.text }}
+    \BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ endfor }
+
+\section*{Projects}
+\BLOCK{ for proj in projects }
+\textbf{ {{ proj.name }} } --- {{ proj.description|default("") }}
+\begin{itemize}[leftmargin=*]
+    \BLOCK{ for bullet in proj.bullets }
+    \item {{ bullet.text }}
+    \BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ endfor }
+\end{multicols}
+\end{document}

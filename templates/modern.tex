@@ -1,0 +1,67 @@
+\documentclass[11pt]{article}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{parskip}
+
+\begin{document}
+\begin{center}
+    {\LARGE {{ contact.name|default("Name") }} }\\
+    {{ contact.email|default("") }} {{ contact.phone|default("") }} {{ contact.linkedin|default("") }} {{ contact.website|default("") }}\\
+    {{ contact.location|default("") }}
+\end{center}
+
+\section*{Summary}
+{{ summary|default("Tailored summary goes here.") }}
+
+\section*{Experience}
+\begin{itemize}[leftmargin=*]
+    \BLOCK{ for exp in work_experience }
+    \item \textbf{ {{ exp.title }} at {{ exp.company }} } --- {{ exp.start_date|default("") }} -- {{ exp.end_date|default("Present") }} \\
+    {{ exp.location|default("") }}
+    \begin{itemize}[leftmargin=*]
+        \BLOCK{ for bullet in exp.bullets }
+        \item {{ bullet.text }}
+        \BLOCK{ endfor }
+    \end{itemize}
+    \BLOCK{ endfor }
+\end{itemize}
+
+\section*{Projects}
+\begin{itemize}[leftmargin=*]
+    \BLOCK{ for proj in projects }
+    \item \textbf{ {{ proj.name }} } --- {{ proj.description|default("") }}
+    \begin{itemize}[leftmargin=*]
+        \BLOCK{ for bullet in proj.bullets }
+        \item {{ bullet.text }}
+        \BLOCK{ endfor }
+    \end{itemize}
+    \BLOCK{ endfor }
+\end{itemize}
+
+\section*{Skills}
+\begin{itemize}[leftmargin=*]
+    \BLOCK{ for skill in skills }
+    \item {{ skill }}
+    \BLOCK{ endfor }
+\end{itemize}
+
+\section*{Education}
+\begin{itemize}[leftmargin=*]
+    \BLOCK{ for edu in education }
+    \item \textbf{ {{ edu.institution }} } --- {{ edu.degree|default("") }} {{ edu.field|default("") }} ({{ edu.start_date|default("") }} -- {{ edu.end_date|default("") }})
+    \begin{itemize}[leftmargin=*]
+        \BLOCK{ for bullet in edu.details }
+        \item {{ bullet.text }}
+        \BLOCK{ endfor }
+    \end{itemize}
+    \BLOCK{ endfor }
+\end{itemize}
+
+\section*{Certifications}
+\begin{itemize}[leftmargin=*]
+    \BLOCK{ for cert in certifications }
+    \item {{ cert.name }} {{ cert.issuer|default("") }} {{ cert.date|default("") }}
+    \BLOCK{ endfor }
+\end{itemize}
+\end{document}

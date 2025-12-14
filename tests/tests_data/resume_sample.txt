@@ -1,0 +1,16 @@
+Alex Applicant
+alex@example.com | (555) 123-4567 | New York, NY
+
+Summary
+Software engineer with experience building data workflows.
+
+Experience
+Acme Corp — Software Engineer (2020-2023)
+- Built ETL pipelines using Python and SQL.
+- Reduced processing time by optimizing queries.
+
+Education
+State University — B.S. Computer Science (2016-2020)
+
+Skills
+Python, SQL, Airflow, Git

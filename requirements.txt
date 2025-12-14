@@ -1,0 +1,8 @@
+streamlit
+pdfplumber
+pymupdf
+pydantic
+openai
+keyring
+Jinja2
+pytest
