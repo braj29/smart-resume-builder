@@ -61,6 +61,22 @@ def _render_latex_from_tailored(tailored: TailoredResume, template_choice: str) 
     return render_template(template_choice, context)
 
 
+def _extract_pdf_bytes(pdf_file) -> bytes:
+    """Support both file objects and filepath strings from Gradio."""
+    if pdf_file is None:
+        raise ValueError("No PDF uploaded.")
+    # type="binary" returns bytes directly
+    if isinstance(pdf_file, (bytes, bytearray)):
+        return bytes(pdf_file)
+    # When type="file", Gradio returns a file-like object with .read()
+    if hasattr(pdf_file, "read"):
+        return pdf_file.read()
+    # Some environments provide a str path instead.
+    if isinstance(pdf_file, str) and Path(pdf_file).exists():
+        return Path(pdf_file).read_bytes()
+    raise ValueError("Unsupported PDF input; please re-upload the file.")
+
+
 def generate_tailored_resume(
     job_description: str,
     pdf_file,
@@ -85,11 +101,13 @@ def generate_tailored_resume(
         save_api_key(api_key)
 
     try:
+        pdf_bytes = _extract_pdf_bytes(pdf_file)
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            tmp.write(pdf_file.read())
+            tmp.write(pdf_bytes)
             pdf_path = Path(tmp.name)
         result = parse_resume_pdf(str(pdf_path))
         log(f"Extracted text using {result.method}")
+        log("Starting OpenAI pipeline...")
 
         template_map = list_templates()
         template_source = template_map[template_choice].read_text(encoding="utf-8")
@@ -102,6 +120,7 @@ def generate_tailored_resume(
             template_name=template_choice,
             template_source=template_source,
         )
+        log("LLM pipeline complete.")
 
         rendered_latex = _render_latex_from_tailored(tailored, template_choice)
         tailored.latex_content = rendered_latex
@@ -117,7 +136,7 @@ def generate_tailored_resume(
                 pdf_out = compile_to_tempfile(rendered_latex)
                 if pdf_out:
                     pdf_file_path = str(pdf_out)
-            except Exception as exc:
+            except Exception as exc:  # pragma: no cover - external tool
                 log(f"latexmk failed: {exc}")
         else:
             log("latexmk not installed; PDF export disabled.")
@@ -137,7 +156,10 @@ def generate_tailored_resume(
         )
     except Exception as exc:
         log(f"Error: {exc}")
-        return ("", "An error occurred. Check logs.", "", {}, "\n".join(logs), None, None, {})
+        log(
+            "If this persists, verify your OpenAI API key/model and that outbound network access is allowed."
+        )
+        return ("", f"An error occurred: {exc}", "", {}, "\n".join(logs), None, None, {})
 
 
 def build_ui():
@@ -158,7 +180,7 @@ def build_ui():
                 )
                 clear_btn = gr.Button("Clear stored key")
             with gr.Column():
-                pdf = gr.File(label="Upload Resume PDF", file_types=[".pdf"])
+                pdf = gr.File(label="Upload Resume PDF", file_types=[".pdf"], type="binary")
                 logs_box = gr.Textbox(label="Logs", lines=10, interactive=False)
 
         generate_btn = gr.Button("Generate Tailored Resume")

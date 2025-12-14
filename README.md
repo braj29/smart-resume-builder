@@ -10,12 +10,12 @@ Generate grounded, tailored resumes from a job description and a PDF resume usin
 - Streamlit UI with API key storage (keyring preferred), template selector, and export buttons
 - Keyword alignment and missing/needs-confirmation panel
 
-## Quickstart (local)
+## Quickstart (local with uv)
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
-pip install -r requirements.txt
-python app.py
+# install uv if needed: curl -LsSf https://astral.sh/uv/install.sh | sh
+uv venv .venv
+uv pip install -r requirements.txt
+uv run app.py
 ```
 
 ## Using the app
@@ -29,8 +29,8 @@ python app.py
 
 ## Docker
 ```bash
-docker build -t resume-tailor .
-docker run -p 7860:7860 resume-tailor
+make docker-build
+make docker-run PORT=7860
 ```
 Then open http://localhost:7860.
 
@@ -45,7 +45,7 @@ Then open http://localhost:7860.
 
 ## Tests
 ```bash
-pytest
+uv run pytest
 ```
 
 ## Troubleshooting
