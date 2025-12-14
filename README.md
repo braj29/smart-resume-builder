@@ -1,3 +1,15 @@
+---
+title: Smart Resume Builder
+emoji: 📄
+colorFrom: gray
+colorTo: blue
+sdk: gradio
+sdk_version: "4.38.1"
+app_file: app.py
+pinned: false
+license: mit
+---
+
 # Smart Resume Builder
 
 Generate grounded, tailored resumes from a job description and a PDF resume using Gradio, OpenAI, and LaTeX templates. Suitable for local runs or Hugging Face Spaces. 
