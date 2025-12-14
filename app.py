@@ -1,16 +1,17 @@
 import json
 import logging
 import os
+import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
-import streamlit as st
+import gradio as gr
 
 from llm.pipeline import run_pipeline
 from render.latex import compile_to_tempfile, latexmk_available
 from render.templates import list_templates, render_template
 from resume_parser.parser import parse_resume_pdf
-from schemas.resume import Resume, TailoredResume
+from schemas.resume import TailoredResume
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("resume_tailor")
@@ -43,7 +44,7 @@ def save_api_key(key: str) -> None:
         LOCAL_KEY_PATH.write_text(key)
 
 
-def clear_api_key() -> None:
+def clear_api_key() -> str:
     try:
         import keyring  # type: ignore
 
@@ -52,144 +53,143 @@ def clear_api_key() -> None:
         pass
     if LOCAL_KEY_PATH.exists():
         LOCAL_KEY_PATH.unlink()
+    return ""
 
 
-def ensure_state():
-    st.session_state.setdefault("latex_content", "")
-    st.session_state.setdefault("resume_json", {})
-    st.session_state.setdefault("tailored", None)
-    st.session_state.setdefault("raw_text", "")
-    st.session_state.setdefault("logs", [])
+def _render_latex_from_tailored(tailored: TailoredResume, template_choice: str) -> str:
+    context = tailored.tailored_resume.dict()
+    return render_template(template_choice, context)
 
 
-def log(message: str):
-    st.session_state.logs.append(message)
-    st.session_state.logs = st.session_state.logs[-8:]
+def generate_tailored_resume(
+    job_description: str,
+    pdf_file,
+    api_key: str,
+    model: str,
+    template_choice: str,
+    save_key: bool,
+) -> Tuple[str, str, str, dict, str, Optional[str], Optional[str], dict]:
+    logs = []
 
+    def log(msg: str):
+        logs.append(msg)
 
-def main():
-    st.set_page_config(page_title=APP_TITLE, layout="wide")
-    ensure_state()
+    if not api_key:
+        return ("", "API key required.", "", {}, "\n".join(logs), None, None, {})
+    if not pdf_file:
+        return ("", "Please upload a resume PDF.", "", {}, "\n".join(logs), None, None, {})
+    if not job_description.strip():
+        return ("", "Job description required.", "", {}, "\n".join(logs), None, None, {})
 
-    st.title(APP_TITLE)
-    st.write("Generate tailored resumes with grounded extraction and LaTeX rendering.")
+    if save_key:
+        save_api_key(api_key)
 
-    stored_key = load_api_key()
-    col1, col2 = st.columns(2)
-    with col1:
-        job_description = st.text_area("Job Description", height=220)
-        api_key = st.text_input(
-            "OpenAI API Key",
-            type="password",
-            value=stored_key or "",
-            help="Stored securely via system keychain when available.",
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            tmp.write(pdf_file.read())
+            pdf_path = Path(tmp.name)
+        result = parse_resume_pdf(str(pdf_path))
+        log(f"Extracted text using {result.method}")
+
+        template_map = list_templates()
+        template_source = template_map[template_choice].read_text(encoding="utf-8")
+
+        resume, tailored = run_pipeline(
+            api_key=api_key,
+            model=model,
+            raw_text=result.raw_text,
+            job_description=job_description,
+            template_name=template_choice,
+            template_source=template_source,
         )
-        save_key = st.checkbox("Save locally", value=bool(stored_key))
-        model = st.text_input("Model name", value="gpt-4o-mini")
-        template_names = list(list_templates().keys())
-        template_choice = st.selectbox(
-            "Template", options=template_names, index=0 if template_names else 0
+
+        rendered_latex = _render_latex_from_tailored(tailored, template_choice)
+        tailored.latex_content = rendered_latex
+        tex_file_path: Optional[str] = None
+        pdf_file_path: Optional[str] = None
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".tex") as tex_tmp:
+            tex_tmp.write(rendered_latex.encode("utf-8"))
+            tex_file_path = tex_tmp.name
+
+        if latexmk_available():
+            try:
+                pdf_out = compile_to_tempfile(rendered_latex)
+                if pdf_out:
+                    pdf_file_path = str(pdf_out)
+            except Exception as exc:
+                log(f"latexmk failed: {exc}")
+        else:
+            log("latexmk not installed; PDF export disabled.")
+
+        missing_text = "\n".join(tailored.missing_items) or "None"
+        questions_text = "\n".join(tailored.questions) or "None"
+
+        return (
+            rendered_latex,
+            missing_text,
+            questions_text,
+            tailored.keyword_alignment.dict(),
+            "\n".join(logs),
+            tex_file_path,
+            pdf_file_path,
+            json.loads(resume.json()),
         )
-        if st.button("Clear stored key"):
-            clear_api_key()
-            st.success("Stored key cleared.")
-    with col2:
-        uploaded_file = st.file_uploader("Upload Resume PDF", type=["pdf"])
-        st.markdown("**Output Preview**")
-        st.code(st.session_state.get("latex_content", ""), language="latex")
-        st.markdown("**Logs**")
-        st.text("\n".join(st.session_state.get("logs", [])))
+    except Exception as exc:
+        log(f"Error: {exc}")
+        return ("", "An error occurred. Check logs.", "", {}, "\n".join(logs), None, None, {})
 
-    if st.button("Generate Tailored Resume"):
-        if not api_key:
-            st.error("API key required.")
-            return
-        if not uploaded_file:
-            st.error("Please upload a resume PDF.")
-            return
-        if not job_description.strip():
-            st.error("Job description required.")
-            return
 
-        if save_key:
-            save_api_key(api_key)
+def build_ui():
+    stored_key = load_api_key() or ""
+    templates = list_templates()
+    template_names = list(templates.keys()) or ["modern"]
 
-        with st.spinner("Parsing resume PDF..."):
-            import tempfile
+    with gr.Blocks(title=APP_TITLE) as demo:
+        gr.Markdown(f"# {APP_TITLE}\nTailor resumes with grounded extraction and LaTeX rendering.")
+        with gr.Row():
+            with gr.Column():
+                jd = gr.Textbox(label="Job Description", lines=12, placeholder="Paste JD here")
+                api = gr.Textbox(label="OpenAI API Key", type="password", value=stored_key)
+                save_key = gr.Checkbox(label="Save key locally (keyring preferred)", value=bool(stored_key))
+                model = gr.Textbox(label="Model name", value="gpt-4o-mini")
+                template_choice = gr.Dropdown(
+                    label="Template", choices=template_names, value=template_names[0]
+                )
+                clear_btn = gr.Button("Clear stored key")
+            with gr.Column():
+                pdf = gr.File(label="Upload Resume PDF", file_types=[".pdf"])
+                logs_box = gr.Textbox(label="Logs", lines=10, interactive=False)
 
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                tmp.write(uploaded_file.getvalue())
-                temp_pdf = Path(tmp.name)
+        generate_btn = gr.Button("Generate Tailored Resume")
+        latex_preview = gr.Code(label="LaTeX Output", language="latex")
+        missing_panel = gr.Textbox(label="Missing / Needs Confirmation", lines=6)
+        questions_panel = gr.Textbox(label="Questions for user", lines=4)
+        keyword_alignment = gr.JSON(label="Keyword alignment")
+        resume_json = gr.JSON(label="Resume JSON (parsed)")
+        tex_download = gr.File(label="Export .tex")
+        pdf_download = gr.File(label="Export PDF (requires latexmk)")
 
-            result = parse_resume_pdf(str(temp_pdf))
-            st.session_state["raw_text"] = result.raw_text
-            log(f"Extracted text using {result.method}")
+        generate_btn.click(
+            fn=generate_tailored_resume,
+            inputs=[jd, pdf, api, model, template_choice, save_key],
+            outputs=[
+                latex_preview,
+                missing_panel,
+                questions_panel,
+                keyword_alignment,
+                logs_box,
+                tex_download,
+                pdf_download,
+                resume_json,
+            ],
+        )
 
-        with st.spinner("Running LLM pipeline..."):
-            template_map = list_templates()
-            template_source = template_map[template_choice].read_text(encoding="utf-8")
-            resume, tailored = run_pipeline(
-                api_key=api_key,
-                model=model,
-                raw_text=result.raw_text,
-                job_description=job_description,
-                template_name=template_choice,
-                template_source=template_source,
-            )
-            st.session_state["resume_json"] = json.loads(resume.json())
-            st.session_state["tailored"] = tailored
+        clear_btn.click(fn=clear_api_key, inputs=None, outputs=api)
 
-            context = tailored.tailored_resume.dict()
-            rendered = render_template(template_choice, context)
-            tailored.latex_content = rendered
-            st.session_state["latex_content"] = rendered
-            log("Pipeline completed.")
-
-    tailored: TailoredResume = st.session_state.get("tailored")
-    resume_data = st.session_state.get("resume_json")
-
-    if tailored:
-        st.subheader("Missing / Needs Confirmation")
-        st.write(tailored.missing_items or ["None"])
-
-        st.subheader("Questions for user")
-        st.write(tailored.questions or ["None"])
-
-        st.subheader("Keyword alignment")
-        st.json(tailored.keyword_alignment.dict())
-
-    col_export1, col_export2 = st.columns(2)
-    with col_export1:
-        if st.session_state.get("latex_content"):
-            st.download_button(
-                "Export .tex",
-                data=st.session_state["latex_content"],
-                file_name="tailored_resume.tex",
-                mime="application/x-tex",
-            )
-    with col_export2:
-        if st.session_state.get("latex_content"):
-            if latexmk_available():
-                pdf_path = compile_to_tempfile(st.session_state["latex_content"])
-                if pdf_path and pdf_path.exists():
-                    st.download_button(
-                        "Export PDF",
-                        data=pdf_path.read_bytes(),
-                        file_name="tailored_resume.pdf",
-                        mime="application/pdf",
-                    )
-            else:
-                st.info("latexmk not installed. PDF export disabled. See README.")
-
-    st.subheader("Generated LaTeX")
-    st.code(st.session_state.get("latex_content", ""), language="latex")
-
-    st.subheader("Resume JSON")
-    if resume_data:
-        st.json(resume_data)
-    else:
-        st.text("Run the pipeline to view parsed resume JSON.")
+    return demo
 
 
 if __name__ == "__main__":
-    main()
+    app = build_ui()
+    app.launch(server_name="0.0.0.0", server_port=int(os.getenv("PORT", "7860")))

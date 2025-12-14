@@ -1,4 +1,4 @@
-streamlit
+gradio
 pdfplumber
 pymupdf
 pydantic

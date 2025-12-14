@@ -1,6 +1,6 @@
 # ResumeTailor
 
-Generate grounded, tailored resumes from a job description and a PDF resume using Streamlit, OpenAI, and LaTeX templates.
+Generate grounded, tailored resumes from a job description and a PDF resume using Gradio, OpenAI, and LaTeX templates. Suitable for local runs or Hugging Face Spaces.
 
 ## Features
 - PDF parsing with `pdfplumber` and `pymupdf` fallback
@@ -10,12 +10,12 @@ Generate grounded, tailored resumes from a job description and a PDF resume usin
 - Streamlit UI with API key storage (keyring preferred), template selector, and export buttons
 - Keyword alignment and missing/needs-confirmation panel
 
-## Quickstart
+## Quickstart (local)
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
 pip install -r requirements.txt
-streamlit run app.py
+python app.py
 ```
 
 ## Using the app
@@ -26,6 +26,13 @@ streamlit run app.py
 5. Click **Generate Tailored Resume**.
 6. Review the LaTeX preview, missing/needs-confirmation list, and keyword alignment.
 7. Export `.tex` or PDF. PDF export requires `latexmk`.
+
+## Docker
+```bash
+docker build -t resume-tailor .
+docker run -p 7860:7860 resume-tailor
+```
+Then open http://localhost:7860.
 
 ## LaTeX compilation
 - PDF export uses `latexmk -pdf`. Install TeX Live or MikTeX and ensure `latexmk` is on your PATH.
