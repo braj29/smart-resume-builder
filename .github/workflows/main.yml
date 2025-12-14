@@ -23,6 +23,5 @@ jobs:
           fi
           set -e
           git remote add space https://__token__:$HF_TOKEN@huggingface.co/spaces/raj999/smart-resume-builder
-          git fetch space main
-          git pull --rebase space main
-          git push space HEAD:main
+          # Force push so the GitHub repo is the source of truth for the Space
+          git push --force-with-lease space HEAD:main
