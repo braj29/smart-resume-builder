@@ -214,4 +214,9 @@ def build_ui():
 
 if __name__ == "__main__":
     app = build_ui()
-    app.launch(server_name="0.0.0.0", server_port=int(os.getenv("PORT", "7860")))
+    # On Spaces, localhost is blocked; share=True ensures a public link is exposed.
+    app.launch(
+        server_name="0.0.0.0",
+        server_port=int(os.getenv("PORT", "7860")),
+        share=os.getenv("SPACE_ID") is not None,
+    )
