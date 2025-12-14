@@ -84,7 +84,7 @@ def generate_tailored_resume(
     model: str,
     template_choice: str,
     save_key: bool,
-) -> Tuple[str, str, str, dict, str, Optional[str], Optional[str], dict]:
+) -> Tuple[str, str, str, str, str, Optional[str], Optional[str], str]:
     logs = []
 
     def log(msg: str):
@@ -148,11 +148,11 @@ def generate_tailored_resume(
             rendered_latex,
             missing_text,
             questions_text,
-            tailored.keyword_alignment.dict(),
+            json.dumps(tailored.keyword_alignment.dict(), indent=2),
             "\n".join(logs),
             tex_file_path,
             pdf_file_path,
-            json.loads(resume.json()),
+            resume.json(indent=2),
         )
     except Exception as exc:
         log(f"Error: {exc}")
@@ -187,8 +187,8 @@ def build_ui():
         latex_preview = gr.Code(label="LaTeX Output", language="markdown")
         missing_panel = gr.Textbox(label="Missing / Needs Confirmation", lines=6)
         questions_panel = gr.Textbox(label="Questions for user", lines=4)
-        keyword_alignment = gr.JSON(label="Keyword alignment")
-        resume_json = gr.JSON(label="Resume JSON (parsed)")
+        keyword_alignment = gr.Textbox(label="Keyword alignment", lines=6)
+        resume_json = gr.Textbox(label="Resume JSON (parsed)", lines=10)
         tex_download = gr.File(label="Export .tex")
         pdf_download = gr.File(label="Export PDF (requires latexmk)")
 
@@ -214,9 +214,9 @@ def build_ui():
 
 if __name__ == "__main__":
     app = build_ui()
-    # On Spaces, localhost is blocked; share=True ensures a public link is exposed.
+    # On Spaces, share=False is preferred; HF handles routing.
     app.launch(
         server_name="0.0.0.0",
         server_port=int(os.getenv("PORT", "7860")),
-        share=os.getenv("SPACE_ID") is not None,
+        share=False,
     )
