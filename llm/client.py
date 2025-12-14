@@ -51,8 +51,20 @@ class OpenAIClient:
                 return resp["choices"][0]["message"]["content"] or ""
             except Exception as exc:  # pragma: no cover - network call
                 last_error = exc
-                logger.warning("OpenAI call failed (attempt %s): %s", attempt + 1, exc)
-                time.sleep(delay)
+                if _is_rate_limit_error(exc):
+                    # User indicated ~3 req/min; wait ~20s before retrying.
+                    wait_time = max(delay, 20.0)
+                    logger.warning(
+                        "OpenAI rate limit encountered (attempt %s). Waiting %.1fs",
+                        attempt + 1,
+                        wait_time,
+                    )
+                    time.sleep(wait_time)
+                else:
+                    logger.warning(
+                        "OpenAI call failed (attempt %s): %s", attempt + 1, exc
+                    )
+                    time.sleep(delay)
                 delay *= 2
         raise RuntimeError(f"OpenAI call failed after retries: {last_error}")  # pragma: no cover - network call
 
@@ -92,3 +104,13 @@ def _safe_json_parse(text: str) -> Dict[str, Any] | None:
         except json.JSONDecodeError:
             return None
     return None
+
+
+def _is_rate_limit_error(exc: Exception) -> bool:
+    # Works with both new and legacy SDK exceptions.
+    msg = str(exc).lower()
+    if "rate limit" in msg or "rate_limit" in msg:
+        return True
+    if hasattr(exc, "status_code") and getattr(exc, "status_code") == 429:
+        return True
+    return False
