@@ -23,5 +23,7 @@ jobs:
           fi
           set -e
           git remote add space https://__token__:$HF_TOKEN@huggingface.co/spaces/raj999/smart-resume-builder
+          # Update local view of remote to satisfy --force-with-lease and avoid stale info errors
+          git fetch space main || true
           # Force push so the GitHub repo is the source of truth for the Space
           git push --force-with-lease space HEAD:main
