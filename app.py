@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 import gradio as gr
+import gradio_client.utils as gr_client_utils
 
 from llm.pipeline import run_pipeline
 from render.latex import compile_to_tempfile, latexmk_available
@@ -18,6 +19,21 @@ logger = logging.getLogger("smart_resume_builder")
 
 APP_TITLE = "Smart Resume Builder"
 LOCAL_KEY_PATH = Path.home() / ".smart_resume_builder_key"
+
+
+# Gradio 4.44.1 can emit JSON schema fragments with `additionalProperties: true`,
+# which crashes `gradio_client.utils` when generating API info. Patch in a guard
+# so boolean schemas map to `Any` instead of raising TypeError.
+_original_json_schema_to_python_type = gr_client_utils._json_schema_to_python_type
+
+
+def _safe_json_schema_to_python_type(schema, defs=None):
+    if isinstance(schema, bool):
+        return "Any"
+    return _original_json_schema_to_python_type(schema, defs)
+
+
+gr_client_utils._json_schema_to_python_type = _safe_json_schema_to_python_type
 
 
 def load_api_key() -> Optional[str]:
