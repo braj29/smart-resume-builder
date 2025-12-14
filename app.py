@@ -184,7 +184,7 @@ def build_ui():
                 logs_box = gr.Textbox(label="Logs", lines=10, interactive=False)
 
         generate_btn = gr.Button("Generate Tailored Resume")
-        latex_preview = gr.Code(label="LaTeX Output", language="latex")
+        latex_preview = gr.Code(label="LaTeX Output", language="markdown")
         missing_panel = gr.Textbox(label="Missing / Needs Confirmation", lines=6)
         questions_panel = gr.Textbox(label="Questions for user", lines=4)
         keyword_alignment = gr.JSON(label="Keyword alignment")
