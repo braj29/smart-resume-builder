@@ -159,7 +159,16 @@ def generate_tailored_resume(
         log(
             "If this persists, verify your OpenAI API key/model and that outbound network access is allowed."
         )
-        return ("", f"An error occurred: {exc}", "", {}, "\n".join(logs), None, None, {})
+        return (
+            "",
+            f"An error occurred: {exc}",
+            "",
+            "",
+            "\n".join(logs),
+            None,
+            None,
+            "",
+        )
 
 
 def build_ui():
@@ -214,9 +223,9 @@ def build_ui():
 
 if __name__ == "__main__":
     app = build_ui()
-    # On Spaces, share=False is preferred; HF handles routing.
+    # On Spaces, enforce share=True to avoid localhost accessibility issues.
     app.launch(
         server_name="0.0.0.0",
         server_port=int(os.getenv("PORT", "7860")),
-        share=False,
+        share=True,
     )
