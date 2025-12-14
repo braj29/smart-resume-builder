@@ -1,6 +1,6 @@
 # Smart Resume Builder
 
-Generate grounded, tailored resumes from a job description and a PDF resume using Gradio, OpenAI, and LaTeX templates. Suitable for local runs or Hugging Face Spaces.
+Generate grounded, tailored resumes from a job description and a PDF resume using Gradio, OpenAI, and LaTeX templates. Suitable for local runs or Hugging Face Spaces. 
 
 ## Features
 - PDF parsing with `pdfplumber` and `pymupdf` fallback
