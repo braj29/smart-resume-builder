@@ -41,7 +41,7 @@ def compile_latex(latex_content: str, output_dir: Path, output_basename: str) ->
 def compile_to_tempfile(latex_content: str) -> Optional[Path]:
     if not latexmk_available():
         return None
-    tmpdir = Path(tempfile.mkdtemp(prefix="resume_tailor_"))
+    tmpdir = Path(tempfile.mkdtemp(prefix="smart_resume_builder_"))
     try:
         return compile_latex(latex_content, tmpdir, "tailored_resume")
     except subprocess.CalledProcessError as exc:  # pragma: no cover - external tool

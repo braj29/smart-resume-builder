@@ -14,10 +14,10 @@ from resume_parser.parser import parse_resume_pdf
 from schemas.resume import TailoredResume
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("resume_tailor")
+logger = logging.getLogger("smart_resume_builder")
 
-APP_TITLE = "ResumeTailor"
-LOCAL_KEY_PATH = Path.home() / ".resume_tailor_key"
+APP_TITLE = "Smart Resume Builder"
+LOCAL_KEY_PATH = Path.home() / ".smart_resume_builder_key"
 
 
 def load_api_key() -> Optional[str]:

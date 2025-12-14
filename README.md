@@ -1,4 +1,4 @@
-# ResumeTailor
+# Smart Resume Builder
 
 Generate grounded, tailored resumes from a job description and a PDF resume using Gradio, OpenAI, and LaTeX templates. Suitable for local runs or Hugging Face Spaces.
 
@@ -39,7 +39,7 @@ Then open http://localhost:7860.
 - If `latexmk` is missing, PDF export is disabled but `.tex` export works.
 
 ## Security notes
-- API keys are stored via `keyring` when available; otherwise a local fallback file `~/.resume_tailor_key` is used.
+- API keys are stored via `keyring` when available; otherwise a local fallback file `~/.smart_resume_builder_key` is used.
 - Keys are never written to logs.
 - Use the **Clear stored key** button to remove saved credentials.
 
