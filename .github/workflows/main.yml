@@ -21,4 +21,8 @@ jobs:
             echo "HF_TOKEN secret is missing; add it in repository settings." >&2
             exit 1
           fi
-          git push https://__token__:$HF_TOKEN@huggingface.co/spaces/raj999/smart-resume-builder main
+          set -e
+          git remote add space https://__token__:$HF_TOKEN@huggingface.co/spaces/raj999/smart-resume-builder
+          git fetch space main
+          git pull --rebase space main
+          git push space HEAD:main
