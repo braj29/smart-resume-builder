@@ -12,11 +12,11 @@ license: mit
 
 # Smart Resume Builder
 
-Generate grounded, tailored resumes from a job description and a PDF resume using Gradio, OpenAI, and LaTeX templates. Suitable for local runs or Hugging Face Spaces. 
+Generate grounded, tailored resumes from a job description and a PDF resume using Gradio, OpenAI or Hugging Face models, and LaTeX templates. Suitable for local runs or Hugging Face Spaces. 
 
 ## Features
 - PDF parsing with `pdfplumber` and `pymupdf` fallback
-- Strict, evidence-backed JSON extraction via OpenAI
+- Strict, evidence-backed JSON extraction via OpenAI or Hugging Face Inference API
 - Tailoring step that rewrites bullets without fabrication and reports missing items
 - Two LaTeX templates (modern single-column and classic two-column)
 - Streamlit UI with API key storage (keyring preferred), template selector, and export buttons
@@ -33,7 +33,7 @@ uv run app.py
 ## Using the app
 1. Paste the job description.
 2. Upload a resume PDF.
-3. Enter your OpenAI API key (optionally save it locally; system keychain is used when available).
+3. Pick a provider and enter your API key/token (optionally save it locally; system keychain is used when available).
 4. Choose a model name and LaTeX template.
 5. Click **Generate Tailored Resume**.
 6. Review the LaTeX preview, missing/needs-confirmation list, and keyword alignment.
@@ -63,4 +63,4 @@ uv run pytest
 ## Troubleshooting
 - Missing `latexmk`: install TeX Live/MikTeX.
 - If PDF parsing is poor, ensure the resume PDF is text-based; image-only scans are harder to extract.
-- For OpenAI errors, verify the API key and model name in the UI.
+- For provider errors, verify the API key/token and model name in the UI.

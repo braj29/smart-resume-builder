@@ -19,6 +19,13 @@ logger = logging.getLogger("smart_resume_builder")
 
 APP_TITLE = "Smart Resume Builder"
 LOCAL_KEY_PATH = Path.home() / ".smart_resume_builder_key"
+OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini"]
+HF_MODELS = [
+    "mistralai/Mistral-7B-Instruct-v0.2",
+    "mistralai/Mixtral-8x7B-Instruct-v0.1",
+    "HuggingFaceH4/zephyr-7b-beta",
+]
+HF_PROVIDER_LABEL = "Hugging Face (Inference API)"
 
 
 # Gradio 4.44.1 can emit JSON schema fragments with `additionalProperties: true`,
@@ -34,6 +41,12 @@ def _safe_json_schema_to_python_type(schema, defs=None):
 
 
 gr_client_utils._json_schema_to_python_type = _safe_json_schema_to_python_type
+
+
+def _provider_defaults(provider: str) -> Tuple[list[str], str, str]:
+    if provider == HF_PROVIDER_LABEL:
+        return HF_MODELS, HF_MODELS[0], "Hugging Face Token"
+    return OPENAI_MODELS, OPENAI_MODELS[0], "OpenAI API Key"
 
 
 def load_api_key() -> Optional[str]:
@@ -97,6 +110,7 @@ def generate_tailored_resume(
     job_description: str,
     pdf_file,
     api_key: str,
+    provider: str,
     model: str,
     template_choice: str,
     save_key: bool,
@@ -107,7 +121,16 @@ def generate_tailored_resume(
         logs.append(msg)
 
     if not api_key:
-        return ("", "API key required.", "", {}, "\n".join(logs), None, None, {})
+        return (
+            "",
+            "API key/token required.",
+            "",
+            {},
+            "\n".join(logs),
+            None,
+            None,
+            {},
+        )
     if not pdf_file:
         return ("", "Please upload a resume PDF.", "", {}, "\n".join(logs), None, None, {})
     if not job_description.strip():
@@ -123,7 +146,7 @@ def generate_tailored_resume(
             pdf_path = Path(tmp.name)
         result = parse_resume_pdf(str(pdf_path))
         log(f"Extracted text using {result.method}")
-        log("Starting OpenAI pipeline...")
+        log(f"Starting LLM pipeline (provider={provider})...")
 
         template_map = list_templates()
         template_source = template_map[template_choice].read_text(encoding="utf-8")
@@ -131,6 +154,7 @@ def generate_tailored_resume(
         resume, tailored = run_pipeline(
             api_key=api_key,
             model=model,
+            provider=provider,
             raw_text=result.raw_text,
             job_description=job_description,
             template_name=template_choice,
@@ -173,7 +197,7 @@ def generate_tailored_resume(
     except Exception as exc:
         log(f"Error: {exc}")
         log(
-            "If this persists, verify your OpenAI API key/model and that outbound network access is allowed."
+            "If this persists, verify your API key/token and model and that outbound network access is allowed."
         )
         return (
             "",
@@ -197,9 +221,19 @@ def build_ui():
         with gr.Row():
             with gr.Column():
                 jd = gr.Textbox(label="Job Description", lines=12, placeholder="Paste JD here")
+                provider = gr.Dropdown(
+                    label="Provider",
+                    choices=["OpenAI", HF_PROVIDER_LABEL],
+                    value="OpenAI",
+                )
                 api = gr.Textbox(label="OpenAI API Key", type="password", value=stored_key)
                 save_key = gr.Checkbox(label="Save key locally (keyring preferred)", value=bool(stored_key))
-                model = gr.Textbox(label="Model name", value="gpt-4o-mini")
+                model = gr.Dropdown(
+                    label="Model name",
+                    choices=OPENAI_MODELS,
+                    value=OPENAI_MODELS[0],
+                    allow_custom_value=True,
+                )
                 template_choice = gr.Dropdown(
                     label="Template", choices=template_names, value=template_names[0]
                 )
@@ -219,7 +253,7 @@ def build_ui():
 
         generate_btn.click(
             fn=generate_tailored_resume,
-            inputs=[jd, pdf, api, model, template_choice, save_key],
+            inputs=[jd, pdf, api, provider, model, template_choice, save_key],
             outputs=[
                 latex_preview,
                 missing_panel,
@@ -230,6 +264,19 @@ def build_ui():
                 pdf_download,
                 resume_json,
             ],
+        )
+
+        def _update_provider_fields(selected: str):
+            choices, value, key_label = _provider_defaults(selected)
+            return (
+                gr.Dropdown.update(choices=choices, value=value),
+                gr.Textbox.update(label=key_label),
+            )
+
+        provider.change(
+            fn=_update_provider_fields,
+            inputs=provider,
+            outputs=[model, api],
         )
 
         clear_btn.click(fn=clear_api_key, inputs=None, outputs=api)
