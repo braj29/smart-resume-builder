@@ -104,7 +104,11 @@ class HuggingFaceClient:
                 "huggingface_hub package is required. Install with `pip install huggingface_hub`."
             ) from exc
 
-        self.client = InferenceClient(model=model, token=api_token)
+        self.client = InferenceClient(
+            model=model,
+            token=api_token,
+            base_url="https://router.huggingface.co",
+        )
         self.model = model
 
     def chat(self, prompt: str, *, max_retries: int = 3) -> str:
