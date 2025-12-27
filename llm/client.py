@@ -75,7 +75,7 @@ class OpenAIClient:
         raise RuntimeError(f"OpenAI call failed after retries: {last_error}")  # pragma: no cover - network call
 
     def chat_json(self, prompt: str, *, max_retries: int = 3) -> Dict[str, Any]:
-        raw = self.chat(prompt, max_retries=max_retries)
+        raw = self._chat_with_json_mode(prompt, max_retries=max_retries)
         parsed = _safe_json_parse(raw)
         if parsed is not None:
             return parsed
@@ -91,6 +91,31 @@ class OpenAIClient:
         if repaired is None:
             raise ValueError("Model did not return valid JSON after repair attempt")
         return repaired
+
+    def _chat_with_json_mode(self, prompt: str, *, max_retries: int = 3) -> str:
+        if self._mode != "client":
+            return self.chat(prompt, max_retries=max_retries)
+        messages = [{"role": "user", "content": prompt}]
+        delay = 1.0
+        last_error: Exception | None = None
+        for attempt in range(max_retries):
+            try:
+                resp = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=0.2,
+                    response_format={"type": "json_object"},
+                )
+                return resp.choices[0].message.content or ""
+            except Exception as exc:  # pragma: no cover - network call
+                last_error = exc
+                logger.warning(
+                    "OpenAI JSON mode failed (attempt %s): %s", attempt + 1, exc
+                )
+                time.sleep(delay)
+                delay *= 2
+        logger.warning("Falling back to non-JSON mode after: %s", last_error)
+        return self.chat(prompt, max_retries=max_retries)
 
 
 class HuggingFaceClient:
@@ -147,7 +172,7 @@ class HuggingFaceClient:
         )  # pragma: no cover - network call
 
     def chat_json(self, prompt: str, *, max_retries: int = 3) -> Dict[str, Any]:
-        raw = self.chat(prompt, max_retries=max_retries)
+        raw = self._chat_with_json_mode(prompt, max_retries=max_retries)
         parsed = _safe_json_parse(raw)
         if parsed is not None:
             return parsed
@@ -162,6 +187,29 @@ class HuggingFaceClient:
         if repaired is None:
             raise ValueError("Model did not return valid JSON after repair attempt")
         return repaired
+
+    def _chat_with_json_mode(self, prompt: str, *, max_retries: int = 3) -> str:
+        messages = [{"role": "user", "content": prompt}]
+        delay = 1.0
+        last_error: Exception | None = None
+        for attempt in range(max_retries):
+            try:
+                resp = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=0.2,
+                    response_format={"type": "json_object"},
+                )
+                return resp.choices[0].message.content or ""
+            except Exception as exc:  # pragma: no cover - network call
+                last_error = exc
+                logger.warning(
+                    "Hugging Face JSON mode failed (attempt %s): %s", attempt + 1, exc
+                )
+                time.sleep(delay)
+                delay *= 2
+        logger.warning("Falling back to non-JSON mode after: %s", last_error)
+        return self.chat(prompt, max_retries=max_retries)
 
 
 def build_client(provider: str, api_key: str, model: str) -> LLMClient:
