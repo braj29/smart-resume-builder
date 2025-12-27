@@ -269,8 +269,8 @@ def build_ui():
         def _update_provider_fields(selected: str):
             choices, value, key_label = _provider_defaults(selected)
             return (
-                gr.Dropdown.update(choices=choices, value=value),
-                gr.Textbox.update(label=key_label),
+                gr.update(choices=choices, value=value),
+                gr.update(label=key_label),
             )
 
         provider.change(
