@@ -104,10 +104,13 @@ class HuggingFaceClient:
                 "huggingface_hub package is required. Install with `pip install huggingface_hub`."
             ) from exc
 
+        endpoint = model
+        if not model.startswith("http"):
+            endpoint = f"https://router.huggingface.co/hf-inference/models/{model}"
+
         self.client = InferenceClient(
-            model=model,
+            model=endpoint,
             token=api_token,
-            base_url="https://router.huggingface.co",
         )
         self.model = model
 
