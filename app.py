@@ -21,8 +21,8 @@ APP_TITLE = "Smart Resume Builder"
 LOCAL_KEY_PATH = Path.home() / ".smart_resume_builder_key"
 OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini"]
 HF_MODELS = [
-    "mistralai/Mistral-7B-Instruct-v0.2",
-    "mistralai/Mixtral-8x7B-Instruct-v0.1",
+    "deepseek-ai/DeepSeek-R1:fastest",
+    "openai/gpt-oss-120b:fastest",
     "HuggingFaceH4/zephyr-7b-beta",
 ]
 HF_PROVIDER_LABEL = "Hugging Face (Inference API)"

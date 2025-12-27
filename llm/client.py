@@ -98,34 +98,34 @@ class HuggingFaceClient:
         if not api_token:
             raise ValueError("Hugging Face token required.")
         try:
-            from huggingface_hub import InferenceClient  # type: ignore
+            import openai  # type: ignore
         except Exception as exc:  # pragma: no cover - import guard
             raise RuntimeError(
-                "huggingface_hub package is required. Install with `pip install huggingface_hub`."
+                "openai package is required. Install with `pip install openai`."
             ) from exc
 
-        endpoint = model
-        if not model.startswith("http"):
-            endpoint = f"https://router.huggingface.co/hf-inference/models/{model}"
+        if not hasattr(openai, "OpenAI"):
+            raise RuntimeError(
+                "Hugging Face router requires openai>=1.0 for base_url support."
+            )
 
-        self.client = InferenceClient(
-            model=endpoint,
-            token=api_token,
+        self.client = openai.OpenAI(
+            api_key=api_token, base_url="https://router.huggingface.co/v1"
         )
         self.model = model
 
     def chat(self, prompt: str, *, max_retries: int = 3) -> str:
+        messages = [{"role": "user", "content": prompt}]
         delay = 1.0
         last_error: Exception | None = None
         for attempt in range(max_retries):
             try:
-                return self.client.text_generation(
-                    prompt,
-                    max_new_tokens=1024,
+                resp = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
                     temperature=0.2,
-                    do_sample=False,
-                    return_full_text=False,
                 )
+                return resp.choices[0].message.content or ""
             except Exception as exc:  # pragma: no cover - network call
                 last_error = exc
                 if _is_rate_limit_error(exc):

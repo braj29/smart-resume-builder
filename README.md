@@ -16,7 +16,7 @@ Generate grounded, tailored resumes from a job description and a PDF resume usin
 
 ## Features
 - PDF parsing with `pdfplumber` and `pymupdf` fallback
-- Strict, evidence-backed JSON extraction via OpenAI or Hugging Face Inference API
+- Strict, evidence-backed JSON extraction via OpenAI or Hugging Face router (OpenAI-compatible)
 - Tailoring step that rewrites bullets without fabrication and reports missing items
 - Two LaTeX templates (modern single-column and classic two-column)
 - Streamlit UI with API key storage (keyring preferred), template selector, and export buttons
