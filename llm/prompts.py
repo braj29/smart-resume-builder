@@ -20,8 +20,8 @@ Schema:
       "end_date": string|null,
       "bullets": [
         {{
-          "text": string,
-          "evidence": {{"text": string}}
+          "text": string|null,
+          "evidence": {{"text": string}}|null
         }}
       ]
     }}
@@ -35,8 +35,8 @@ Schema:
       "end_date": string|null,
       "details": [
         {{
-          "text": string,
-          "evidence": {{"text": string}}
+          "text": string|null,
+          "evidence": {{"text": string}}|null
         }}
       ]
     }}
@@ -48,8 +48,8 @@ Schema:
       "description": string|null,
       "bullets": [
         {{
-          "text": string,
-          "evidence": {{"text": string}}
+          "text": string|null,
+          "evidence": {{"text": string}}|null
         }}
       ]
     }}
@@ -67,7 +67,7 @@ Schema:
 
 Rules:
 - Use ONLY information found in the resume text below.
-- Every bullet must include a short supporting evidence excerpt from the resume text.
+- Evidence is preferred but not required; use null when unavailable.
 - Preserve chronology and factual accuracy; do not fabricate.
 - If a field is missing, set it to null or an empty array.
 - Return ONLY JSON.
@@ -90,6 +90,7 @@ Rules:
 - Highlight relevant skills and accomplishments supported by evidence.
 - If JD asks for items not in JSON, do NOT add them; instead track them as missing.
 - Keep chronology and dates intact.
+- Evidence fields may be null when not available; do not invent evidence.
 
 Produce a LaTeX body that fits the chosen template placeholders. Also compute:
 - keyword_alignment: which JD keywords were found vs missing in resume JSON

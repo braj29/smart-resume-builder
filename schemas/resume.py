@@ -75,6 +75,19 @@ class Resume(BaseModel):
         return v.strip()
 
 
+def _coerce_list(value):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return []
+        return [line.strip() for line in stripped.splitlines() if line.strip()]
+    return [value]
+
+
 class KeywordAlignment(BaseModel):
     found: List[str] = Field(default_factory=list)
     missing: List[str] = Field(default_factory=list)
@@ -94,3 +107,7 @@ class TailoredResume(BaseModel):
         description="Items requested in JD but unsupported by resume evidence",
     )
     latex_content: str | None = None
+
+    @validator("missing_items", "questions", pre=True)
+    def coerce_lists(cls, v):  # type: ignore
+        return _coerce_list(v)
