@@ -86,13 +86,20 @@ Template source (fill the placeholders with grounded content):
 
 Rules:
 - Use only facts that exist in the JSON. If it is not in JSON+evidence, it cannot appear.
-- Rephrase and strengthen bullets to mirror JD keywords while staying faithful to evidence.
+- Rewrite EVERY summary and bullet to align with the JD; do not copy original phrasing unless necessary.
+- Inject JD keywords and phrasing where they truthfully apply; emphasize matching skills and outcomes.
+- Reorder bullets so the most JD-relevant items appear first; drop or de-emphasize weakly related bullets.
 - Aim for strong action verbs, impact framing, and clearer outcomes without inventing facts.
 - Prefer concise, high-signal bullets; remove redundancy.
-- Highlight relevant skills and accomplishments supported by evidence; de-emphasize unrelated items.
 - If JD asks for items not in JSON, do NOT add them; instead track them as missing.
 - Keep chronology and dates intact.
 - Evidence fields may be null when not available; do not invent evidence.
+
+Process:
+1) Identify top JD requirements and keywords.
+2) Rewrite summary to foreground those requirements using existing facts.
+3) Rewrite each role's bullets to match JD language and prioritize relevance.
+4) Update skills ordering to surface JD-aligned skills first.
 
 Produce a LaTeX body that fits the chosen template placeholders. Also compute:
 - keyword_alignment: which JD keywords were found vs missing in resume JSON

@@ -7,61 +7,95 @@
 \begin{document}
 \begin{center}
     {\LARGE {{ contact.name|default("Name") }} }\\
-    {{ contact.email|default("") }} {{ contact.phone|default("") }} {{ contact.linkedin|default("") }} {{ contact.website|default("") }}\\
-    {{ contact.location|default("") }}
+    {{ [contact.email, contact.phone, contact.linkedin, contact.website]|select|join(" | ") }}\\
+    \BLOCK{ if contact.location }{{ contact.location }}\BLOCK{ endif }
 \end{center}
 
+\BLOCK{ if summary }
 \section*{Summary}
-{{ summary|default("Tailored summary goes here.") }}
+{{ summary }}
+\BLOCK{ endif }
 
+\BLOCK{ if work_experience }
 \section*{Experience}
 \begin{itemize}[leftmargin=*]
     \BLOCK{ for exp in work_experience }
-    \item \textbf{ {{ exp.title }} at {{ exp.company }} } --- {{ exp.start_date|default("") }} -- {{ exp.end_date|default("Present") }} \\
-    {{ exp.location|default("") }}
+    \BLOCK{ if exp.title or exp.company or exp.bullets }
+    \item \textbf{ {{ exp.title|default("Role") }} at {{ exp.company|default("Company") }} } --- {{ exp.start_date|default("") }} -- {{ exp.end_date|default("Present") }} \\
+    \BLOCK{ if exp.location }{{ exp.location }}\BLOCK{ endif }
+    \BLOCK{ if exp.bullets }
     \begin{itemize}[leftmargin=*]
         \BLOCK{ for bullet in exp.bullets }
+        \BLOCK{ if bullet.text }
         \item {{ bullet.text }}
+        \BLOCK{ endif }
         \BLOCK{ endfor }
     \end{itemize}
+    \BLOCK{ endif }
+    \BLOCK{ endif }
     \BLOCK{ endfor }
 \end{itemize}
+\BLOCK{ endif }
 
+\BLOCK{ if projects }
 \section*{Projects}
 \begin{itemize}[leftmargin=*]
     \BLOCK{ for proj in projects }
-    \item \textbf{ {{ proj.name }} } --- {{ proj.description|default("") }}
+    \BLOCK{ if proj.name or proj.description or proj.bullets }
+    \item \textbf{ {{ proj.name|default("Project") }} } --- {{ proj.description|default("") }}
+    \BLOCK{ if proj.bullets }
     \begin{itemize}[leftmargin=*]
         \BLOCK{ for bullet in proj.bullets }
+        \BLOCK{ if bullet.text }
         \item {{ bullet.text }}
+        \BLOCK{ endif }
         \BLOCK{ endfor }
     \end{itemize}
+    \BLOCK{ endif }
+    \BLOCK{ endif }
     \BLOCK{ endfor }
 \end{itemize}
+\BLOCK{ endif }
 
+\BLOCK{ if skills }
 \section*{Skills}
 \begin{itemize}[leftmargin=*]
     \BLOCK{ for skill in skills }
+    \BLOCK{ if skill }
     \item {{ skill }}
+    \BLOCK{ endif }
     \BLOCK{ endfor }
 \end{itemize}
+\BLOCK{ endif }
 
+\BLOCK{ if education }
 \section*{Education}
 \begin{itemize}[leftmargin=*]
     \BLOCK{ for edu in education }
-    \item \textbf{ {{ edu.institution }} } --- {{ edu.degree|default("") }} {{ edu.field|default("") }} ({{ edu.start_date|default("") }} -- {{ edu.end_date|default("") }})
+    \BLOCK{ if edu.institution or edu.degree or edu.field or edu.details }
+    \item \textbf{ {{ edu.institution|default("Institution") }} } --- {{ edu.degree|default("") }} {{ edu.field|default("") }} ({{ edu.start_date|default("") }} -- {{ edu.end_date|default("") }})
+    \BLOCK{ if edu.details }
     \begin{itemize}[leftmargin=*]
         \BLOCK{ for bullet in edu.details }
+        \BLOCK{ if bullet.text }
         \item {{ bullet.text }}
+        \BLOCK{ endif }
         \BLOCK{ endfor }
     \end{itemize}
+    \BLOCK{ endif }
+    \BLOCK{ endif }
     \BLOCK{ endfor }
 \end{itemize}
+\BLOCK{ endif }
 
+\BLOCK{ if certifications }
 \section*{Certifications}
 \begin{itemize}[leftmargin=*]
     \BLOCK{ for cert in certifications }
-    \item {{ cert.name }} {{ cert.issuer|default("") }} {{ cert.date|default("") }}
+    \BLOCK{ if cert.name or cert.issuer or cert.date }
+    \item {{ cert.name|default("Certification") }} {{ cert.issuer|default("") }} {{ cert.date|default("") }}
+    \BLOCK{ endif }
     \BLOCK{ endfor }
 \end{itemize}
+\BLOCK{ endif }
 \end{document}

@@ -8,61 +8,95 @@
 \begin{document}
 \begin{center}
     {\Large {{ contact.name|default("Name") }} }\\
-    {{ contact.email|default("") }} | {{ contact.phone|default("") }} | {{ contact.location|default("") }}\\
-    {{ contact.linkedin|default("") }} {{ contact.website|default("") }}
+    {{ [contact.email, contact.phone, contact.location]|select|join(" | ") }}\\
+    {{ [contact.linkedin, contact.website]|select|join(" | ") }}
 \end{center}
 
 \begin{multicols}{2}
+\BLOCK{ if skills }
 \section*{Skills}
 \begin{itemize}[leftmargin=*]
     \BLOCK{ for skill in skills }
+    \BLOCK{ if skill }
     \item {{ skill }}
+    \BLOCK{ endif }
     \BLOCK{ endfor }
 \end{itemize}
+\BLOCK{ endif }
 
+\BLOCK{ if education }
 \section*{Education}
 \BLOCK{ for edu in education }
-\textbf{ {{ edu.institution }} } \\
-{{ edu.degree|default("") }} {{ edu.field|default("") }} \\
-{{ edu.start_date|default("") }} -- {{ edu.end_date|default("") }} \\
-\begin{itemize}[leftmargin=*]
-    \BLOCK{ for bullet in edu.details }
-    \item {{ bullet.text }}
-    \BLOCK{ endfor }
-\end{itemize}
+    \BLOCK{ if edu.institution or edu.degree or edu.field or edu.details }
+    \textbf{ {{ edu.institution|default("Institution") }} } \\
+    {{ edu.degree|default("") }} {{ edu.field|default("") }} \\
+    {{ edu.start_date|default("") }} -- {{ edu.end_date|default("") }} \\
+    \BLOCK{ if edu.details }
+    \begin{itemize}[leftmargin=*]
+        \BLOCK{ for bullet in edu.details }
+        \BLOCK{ if bullet.text }
+        \item {{ bullet.text }}
+        \BLOCK{ endif }
+        \BLOCK{ endfor }
+    \end{itemize}
+    \BLOCK{ endif }
+    \BLOCK{ endif }
 \BLOCK{ endfor }
+\BLOCK{ endif }
 
+\BLOCK{ if certifications }
 \section*{Certifications}
 \begin{itemize}[leftmargin=*]
     \BLOCK{ for cert in certifications }
-    \item {{ cert.name }} {{ cert.issuer|default("") }} {{ cert.date|default("") }}
+    \BLOCK{ if cert.name or cert.issuer or cert.date }
+    \item {{ cert.name|default("Certification") }} {{ cert.issuer|default("") }} {{ cert.date|default("") }}
+    \BLOCK{ endif }
     \BLOCK{ endfor }
 \end{itemize}
+\BLOCK{ endif }
 \columnbreak
 
+\BLOCK{ if summary }
 \section*{Summary}
-{{ summary|default("Tailored summary goes here.") }}
+{{ summary }}
+\BLOCK{ endif }
 
+\BLOCK{ if work_experience }
 \section*{Experience}
 \BLOCK{ for exp in work_experience }
-\textbf{ {{ exp.title }} } --- {{ exp.company }} \\
-{{ exp.location|default("") }} \\
-{{ exp.start_date|default("") }} -- {{ exp.end_date|default("Present") }} \\
-\begin{itemize}[leftmargin=*]
-    \BLOCK{ for bullet in exp.bullets }
-    \item {{ bullet.text }}
-    \BLOCK{ endfor }
-\end{itemize}
+    \BLOCK{ if exp.title or exp.company or exp.bullets }
+    \textbf{ {{ exp.title|default("Role") }} } --- {{ exp.company|default("Company") }} \\
+    \BLOCK{ if exp.location }{{ exp.location }} \\ \BLOCK{ endif }
+    {{ exp.start_date|default("") }} -- {{ exp.end_date|default("Present") }} \\
+    \BLOCK{ if exp.bullets }
+    \begin{itemize}[leftmargin=*]
+        \BLOCK{ for bullet in exp.bullets }
+        \BLOCK{ if bullet.text }
+        \item {{ bullet.text }}
+        \BLOCK{ endif }
+        \BLOCK{ endfor }
+    \end{itemize}
+    \BLOCK{ endif }
+    \BLOCK{ endif }
 \BLOCK{ endfor }
+\BLOCK{ endif }
 
+\BLOCK{ if projects }
 \section*{Projects}
 \BLOCK{ for proj in projects }
-\textbf{ {{ proj.name }} } --- {{ proj.description|default("") }}
-\begin{itemize}[leftmargin=*]
-    \BLOCK{ for bullet in proj.bullets }
-    \item {{ bullet.text }}
-    \BLOCK{ endfor }
-\end{itemize}
+    \BLOCK{ if proj.name or proj.description or proj.bullets }
+    \textbf{ {{ proj.name|default("Project") }} } --- {{ proj.description|default("") }}
+    \BLOCK{ if proj.bullets }
+    \begin{itemize}[leftmargin=*]
+        \BLOCK{ for bullet in proj.bullets }
+        \BLOCK{ if bullet.text }
+        \item {{ bullet.text }}
+        \BLOCK{ endif }
+        \BLOCK{ endfor }
+    \end{itemize}
+    \BLOCK{ endif }
+    \BLOCK{ endif }
 \BLOCK{ endfor }
+\BLOCK{ endif }
 \end{multicols}
 \end{document}
