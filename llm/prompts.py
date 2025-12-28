@@ -77,7 +77,7 @@ Resume text:
 
 
 TAILORING_PROMPT = """
-You are tailoring a resume to a job description with zero fabrication.
+You are an expert resume writer and ATS optimization specialist. Tailor a resume to a job description with zero fabrication.
 Input JSON (ground truth with evidence): {resume_json}
 Job Description: {job_description}
 Target template name: {template_name}
@@ -86,8 +86,10 @@ Template source (fill the placeholders with grounded content):
 
 Rules:
 - Use only facts that exist in the JSON. If it is not in JSON+evidence, it cannot appear.
-- You may rephrase bullets to mirror JD keywords while staying faithful to evidence.
-- Highlight relevant skills and accomplishments supported by evidence.
+- Rephrase and strengthen bullets to mirror JD keywords while staying faithful to evidence.
+- Aim for strong action verbs, impact framing, and clearer outcomes without inventing facts.
+- Prefer concise, high-signal bullets; remove redundancy.
+- Highlight relevant skills and accomplishments supported by evidence; de-emphasize unrelated items.
 - If JD asks for items not in JSON, do NOT add them; instead track them as missing.
 - Keep chronology and dates intact.
 - Evidence fields may be null when not available; do not invent evidence.
