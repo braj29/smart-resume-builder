@@ -86,7 +86,7 @@ def clear_api_key() -> str:
 
 
 def _render_latex_from_tailored(tailored: TailoredResume, template_choice: str) -> str:
-    context = tailored.tailored_resume.dict()
+    context = tailored.tailored_resume.model_dump()
     return render_template(template_choice, context)
 
 
@@ -188,11 +188,11 @@ def generate_tailored_resume(
             rendered_latex,
             missing_text,
             questions_text,
-            json.dumps(tailored.keyword_alignment.dict(), indent=2),
+            json.dumps(tailored.keyword_alignment.model_dump(), indent=2),
             "\n".join(logs),
             tex_file_path,
             pdf_file_path,
-            resume.json(indent=2),
+            resume.model_dump_json(indent=2),
         )
     except Exception as exc:
         log(f"Error: {exc}")

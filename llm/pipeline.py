@@ -15,7 +15,7 @@ def extract_resume_json(
     client = build_client(provider, api_key=api_key, model=model)
     prompt = EXTRACTION_PROMPT.format(resume_text=raw_text)
     data = client.chat_json(prompt)
-    resume = Resume.parse_obj(data)
+    resume = Resume.model_validate(data)
     resume.raw_text = raw_text
     return resume
 
@@ -30,7 +30,7 @@ def tailor_resume(
     template_source: str,
 ) -> TailoredResume:
     client = build_client(provider, api_key=api_key, model=model)
-    payload = json.loads(resume.json())
+    payload = resume.model_dump()
     prompt = TAILORING_PROMPT.format(
         resume_json=json.dumps(payload),
         job_description=job_description,
@@ -38,7 +38,7 @@ def tailor_resume(
         template_source=template_source,
     )
     data = client.chat_json(prompt)
-    return TailoredResume.parse_obj(data)
+    return TailoredResume.model_validate(data)
 
 
 def run_pipeline(
