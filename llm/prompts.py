@@ -87,8 +87,9 @@ Template source (fill the placeholders with grounded content):
 Rules:
 - Use only facts that exist in the JSON. If it is not in JSON+evidence, it cannot appear.
 - Rewrite EVERY summary and bullet to align with the JD; do not copy original phrasing unless necessary.
-- Inject JD keywords and phrasing where they truthfully apply; emphasize matching skills and outcomes.
+- Inject JD keywords and phrasing where they apply; emphasize matching skills and outcomes.
 - Reorder bullets so the most JD-relevant items appear first; drop or de-emphasize weakly related bullets.
+- Also, rewrite the profile description to align with JD priorities.
 - Aim for strong action verbs, impact framing, and clearer outcomes without inventing facts.
 - Prefer concise, high-signal bullets; remove redundancy.
 - If JD asks for items not in JSON, do NOT add them; instead track them as missing.
