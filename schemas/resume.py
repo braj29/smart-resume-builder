@@ -24,6 +24,10 @@ class ExperienceEntry(BaseModel):
     end_date: Optional[str] = None
     bullets: List[BulletPoint] = Field(default_factory=list)
 
+    @validator("bullets", pre=True)
+    def coerce_bullets(cls, v):  # type: ignore
+        return _coerce_bullets(v)
+
 
 class EducationEntry(BaseModel):
     institution: Optional[str] = None
@@ -33,11 +37,19 @@ class EducationEntry(BaseModel):
     end_date: Optional[str] = None
     details: List[BulletPoint] = Field(default_factory=list)
 
+    @validator("details", pre=True)
+    def coerce_details(cls, v):  # type: ignore
+        return _coerce_bullets(v)
+
 
 class ProjectEntry(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     bullets: List[BulletPoint] = Field(default_factory=list)
+
+    @validator("bullets", pre=True)
+    def coerce_project_bullets(cls, v):  # type: ignore
+        return _coerce_bullets(v)
 
 
 class CertificationEntry(BaseModel):
@@ -86,6 +98,29 @@ def _coerce_list(value):
             return []
         return [line.strip() for line in stripped.splitlines() if line.strip()]
     return [value]
+
+
+def _coerce_bullets(value):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        coerced = []
+        for item in value:
+            if isinstance(item, str):
+                text = item.strip()
+                if text:
+                    coerced.append({"text": text})
+            elif isinstance(item, dict):
+                coerced.append(item)
+            else:
+                coerced.append({"text": str(item)})
+        return coerced
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return []
+        return [{"text": stripped}]
+    return [{"text": str(value)}]
 
 
 class KeywordAlignment(BaseModel):
