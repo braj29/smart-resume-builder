@@ -86,6 +86,7 @@ Template source (fill the placeholders with grounded content):
 
 Rules:
 - Use only facts that exist in the JSON. If it is not in JSON+evidence, it cannot appear.
+- Use and add all the keywords in the JD to the resume so ATS is optimized.
 - Rewrite EVERY summary and bullet to align with the JD; do not copy original phrasing unless necessary.
 - Inject JD keywords and phrasing where they apply; emphasize matching skills and outcomes.
 - Reorder bullets so the most JD-relevant items appear first; drop or de-emphasize weakly related bullets.
